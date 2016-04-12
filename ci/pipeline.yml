@@ -86,6 +86,7 @@ jobs:
       image: "docker:///maven#3.3.9-jdk-8-onbuild"
       inputs:
       - name: dynatrace-appmon-sb-repo
+      - name: dynatrace-appmon-tile-repo
       outputs:
       - name: dynatrace-appmon-sb
       run:
