@@ -22,14 +22,14 @@ resources:
   type: git
   source:
     branch: master
-    uri: http://github.com/cf-platform-eng/dynatrace-service-broker.git
+    uri: git://github.com/cf-platform-eng/dynatrace-service-broker.git
     private_key: {{dynatrace-appmon-sb-key}}
 
 - name: dynatrace-appmon-tile-repo
   type: git
   source:
     branch: master
-    uri: http://github.com/cf-platform-eng/dynatrace-appmon-tile.git
+    uri: git://github.com/cf-platform-eng/dynatrace-appmon-tile.git
     private_key: {{dynatrace-appmon-tile-key}}
 
 - name: tile-generator-repo
