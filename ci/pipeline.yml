@@ -80,6 +80,7 @@ jobs:
   - aggregate:
     - get: dynatrace-appmon-sb-repo
       trigger: true
+    - get: dynatrace-appmon-tile-repo  
   - task: build-dynatrace-appmon-sb
     config:
       platform: linux
