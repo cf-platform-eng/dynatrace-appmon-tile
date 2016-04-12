@@ -23,12 +23,14 @@ resources:
   source:
     branch: master
     uri: http://github.com/cf-platform-eng/dynatrace-service-broker.git
+    private_key: {{dynatrace-appmon-sb-key}}
 
 - name: dynatrace-appmon-tile-repo
   type: git
   source:
     branch: master
     uri: http://github.com/cf-platform-eng/dynatrace-appmon-tile.git
+    private_key: {{dynatrace-appmon-tile-key}}
 
 - name: tile-generator-repo
   type: git
@@ -44,7 +46,7 @@ resources:
     regexp: dynatrace-service-broker*\.jar
     access_key_id: {{s3-access-key}}
     secret_access_key: {{s3-secret}}
-    endpoint: {{ endpoint }}
+    endpoint: {{endpoint}}
 
 - name: dynatrace-appmon-tile
   type: s3
@@ -53,7 +55,7 @@ resources:
     regexp: .*-(?P<version>.*)\.pivotal
     access_key_id: {{s3-access-key}}
     secret_access_key: {{s3-secret}}
-    endpoint: {{ endpoint }}
+    endpoint: {{endpoint}}
 
 - name: tile-history
   type: s3
@@ -62,7 +64,7 @@ resources:
     regexp: tile\-history-(?P<version>.*)\.yml
     access_key_id: {{s3-access-key}}
     secret_access_key: {{s3-secret}}
-    endpoint: {{ endpoint }}
+    endpoint: {{endpoint}}
 
 - name: pcf-environment
   type: pool
