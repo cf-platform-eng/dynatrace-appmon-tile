@@ -44,6 +44,7 @@ resources:
     regexp: dynatrace-service-broker*\.jar
     access_key_id: {{s3-access-key}}
     secret_access_key: {{s3-secret}}
+    endpoint: {{ endpoint }}
 
 - name: dynatrace-appmon-tile
   type: s3
@@ -52,6 +53,7 @@ resources:
     regexp: .*-(?P<version>.*)\.pivotal
     access_key_id: {{s3-access-key}}
     secret_access_key: {{s3-secret}}
+    endpoint: {{ endpoint }}
 
 - name: tile-history
   type: s3
@@ -60,6 +62,7 @@ resources:
     regexp: tile\-history-(?P<version>.*)\.yml
     access_key_id: {{s3-access-key}}
     secret_access_key: {{s3-secret}}
+    endpoint: {{ endpoint }}
 
 - name: pcf-environment
   type: pool
@@ -67,7 +70,7 @@ resources:
     uri: git@github.com:cf-platform-eng/pipeline-resource-pool
     branch: master
     pool: pcf
-    private_key: {{github-pool-private-key}}
+    private_key: {{pcf-key}}
 
 jobs:
 - name: build-sb
