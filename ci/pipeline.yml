@@ -83,7 +83,8 @@ jobs:
   - task: build-dynatrace-appmon-sb
     config:
       platform: linux
-      image: "docker:///maven:3.3.9-jdk-8-onbuild"
+      image: "maven"
+      tag: "3.3.9-jdk-8-onbuild"
       inputs:
       - name: dynatrace-appmon-sb-repo
       outputs:
