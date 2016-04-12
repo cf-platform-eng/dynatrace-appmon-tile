@@ -23,14 +23,14 @@ resources:
   source:
     branch: master
     uri: git@github.com:cf-platform-eng/dynatrace-service-broker
-    #private_key: {{dynatrace-appmon-sb-key}}
+    private_key: {{dynatrace-appmon-sb-key}}
 
 - name: dynatrace-appmon-tile-repo
   type: git
   source:
     branch: master
     uri: git@github.com:cf-platform-eng/dynatrace-appmon-tile
-    #private_key: {{dynatrace-appmon-tile-key}}
+    private_key: {{dynatrace-appmon-tile-key}}
 
 - name: tile-generator-repo
   type: git
