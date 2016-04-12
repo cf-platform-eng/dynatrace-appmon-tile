@@ -1,7 +1,7 @@
 #!/bin/sh -e
 
-SOURCE_DIR=$1
-TARGET_DIR=$1
+SOURCE_DIR="$(cd "$1" && pwd)"
+TARGET_DIR=$2
 
 cd ${SOURCE_DIR} 
 mvn -Dmaven.test.skip=true install
