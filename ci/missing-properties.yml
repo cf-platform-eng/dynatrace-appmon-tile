@@ -1,0 +1,13 @@
+---
+dynamic_service_plans:
+- name: plan1
+  guid: plan1-id
+  description: Plan for 1
+  collector_host: 10.10.10.10
+  collector_port: 9998
+
+- name: plan2
+  guid: plan2-id
+  description: Plan for 2
+  collector_host: 11.11.11.11
+  collector_port: 9998

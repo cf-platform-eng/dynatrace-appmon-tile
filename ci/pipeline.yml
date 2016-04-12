@@ -1,0 +1,232 @@
+---
+
+groups:
+
+- name: all
+  jobs:
+  - build-sb
+  - build-tile
+  - claim-pcf
+  - deploy-tile
+  - deployment-tests
+  - remove-tile
+  - release-pcf
+
+- name: manual
+  jobs:
+  - claim-pcf
+  - manual-cleanup-and-release
+
+resources:
+- name: dynatrace-appmon-sb-repo
+  type: git
+  source:
+    branch: master
+    uri: http://github.com/cf-platform-eng/dynatrace-service-broker.git
+
+- name: dynatrace-appmon-tile-repo
+  type: git
+  source:
+    branch: master
+    uri: http://github.com/cf-platform-eng/dynatrace-appmon-tile.git
+
+- name: tile-generator-repo
+  type: git
+  source:
+    ignore_paths: [ "sample" ]
+    branch: master
+    uri: http://github.com/cf-platform-eng/tile-generator.git
+
+- name: dynatrace-appmon-sb
+  type: s3
+  source:
+    bucket: {{dynatrace-appmon-pipeline-bucket}}
+    regexp: dynatrace-service-broker*\.jar
+    access_key_id: {{s3-access-key}}
+    secret_access_key: {{s3-secret}}
+
+- name: dynatrace-appmon-tile
+  type: s3
+  source:
+    bucket: {{dynatrace-appmon-pipeline-bucket}}
+    regexp: .*-(?P<version>.*)\.pivotal
+    access_key_id: {{s3-access-key}}
+    secret_access_key: {{s3-secret}}
+
+- name: tile-history
+  type: s3
+  source:
+    bucket: {{dynatrace-appmon-pipeline-bucket}}
+    regexp: tile\-history-(?P<version>.*)\.yml
+    access_key_id: {{s3-access-key}}
+    secret_access_key: {{s3-secret}}
+
+- name: pcf-environment
+  type: pool
+  source:
+    uri: git@github.com:cf-platform-eng/pipeline-resource-pool
+    branch: master
+    pool: pcf
+    private_key: {{github-pool-private-key}}
+
+jobs:
+- name: build-sb
+  plan:
+  - aggregate:
+    - get: dynatrace-appmon-sb-repo
+      trigger: true
+  - task: build-dynatrace-appmon-sb
+    config:
+      platform: linux
+      image: "docker:///maven/3.3.9-jdk-8-onbuild"
+      inputs:
+      - name: dynatrace-appmon-sb-repo
+      outputs:
+      - name: dynatrace-appmon-sb
+      run:
+        path: dynatrace-appmon-tile-repo/ci/scripts/sb-build.sh
+        args: [ "dynatrace-appmon-sb-repo", "dynatrace-appmon-sb"]
+  - put: dynatrace-appmon-sb
+    params:
+      from: dynatrace-appmon-sb/dynatrace-service-broker*\.jar
+
+
+- name: build-tile
+  plan:
+  - aggregate:
+    - get: tile-generator-repo
+    - get: dynatrace-appmon-sb
+      trigger: true
+    - get: dynatrace-appmon-tile-repo
+      trigger: true
+    - get: tile-history
+  - task: build-dynatrace-appmon-tile
+    config:
+      platform: linux
+      image: "docker:///guidowb/tile-pipeline"
+      inputs:
+      - name: tile-generator-repo
+      - name: dynatrace-appmon-tile-repo
+      - name: dynatrace-appmon-sb
+      - name: tile-history
+      outputs:
+      - name: dynatrace-appmon-tile
+      run:
+        path: dynatrace-appmon-tile-repo/ci/scripts/tile-build.sh
+        args: [ "tile-generator-repo", "dynatrace-appmon-tile-repo", "tile-history", "dynatrace-appmon-sb",  "dynatrace-appmon-tile" ]
+  - put: tile-history
+    params:
+      from: dynatrace-appmon-tile/tile-history-.*\.yml
+  - put: dynatrace-appmon-tile
+    params:
+      from: dynatrace-appmon-tile/.*\.pivotal
+
+- name: claim-pcf
+  plan:
+  - aggregate:
+    - get: dynatrace-appmon-tile
+      passed: [ build-tile ]
+      trigger: true
+    - put: pcf-environment
+      params:
+        acquire: true
+
+- name: deploy-tile
+  plan:
+  - aggregate:
+    - get: tile-generator-repo
+    - get: dynatrace-appmon-tile
+      passed: [ claim-pcf ]
+      trigger: true
+    - get: pcf-environment
+      passed: [ claim-pcf ]
+    - get: dynatrace-appmon-tile-repo
+  - task: run-deploy-tile
+    config:
+      platform: linux
+      image: "docker:///guidowb/tile-pipeline"
+      inputs:
+      - name: tile-generator-repo
+      - name: pcf-environment
+      - name: dynatrace-appmon-tile
+      - name: dynatrace-appmon-tile-repo
+      run:
+        path: dynatrace-appmon-tile-repo/ci/scripts/run-deploytile.sh
+        args: [ "tile-generator-repo", "dynatrace-appmon-tile-repo", "dynatrace-appmon-tile", "pcf-environment" ]
+
+- name: deployment-tests
+  plan:
+  - aggregate:
+    - get: tile-generator-repo
+    - get: pcf-environment
+      passed: [ deploy-tile ]
+      trigger: true
+    - get: dynatrace-appmon-tile-repo
+  - task: run-deployment-tests
+    config:
+      platform: linux
+      image: "docker:///guidowb/tile-pipeline"
+      inputs:
+      - name: tile-generator-repo
+      - name: pcf-environment
+      - name: dynatrace-appmon-tile-repo
+      run:
+        path: dynatrace-appmon-tile-repo/ci/scripts/run-deploymenttests.sh
+        args: [ "tile-generator-repo", "pcf-environment" ]
+
+- name: remove-tile
+  plan:
+  - aggregate:
+    - get: tile-generator-repo
+    - get: dynatrace-appmon-tile
+    - get: pcf-environment
+      passed: [ deployment-tests ]
+      trigger: true
+    - get: dynatrace-appmon-tile-repo
+  - task: remove-tile
+    config:
+      platform: linux
+      image: "docker:///guidowb/tile-pipeline"
+      inputs:
+      - name: tile-generator-repo
+      - name: pcf-environment
+      - name: dynatrace-appmon-tile
+      - name: dynatrace-appmon-tile-repo
+      run:
+        path: dynatrace-appmon-tile-repo/ci/scripts/run-removetile.sh
+        args: [ "tile-generator-repo", "dynatrace-appmon-tile", "pcf-environment" ]
+
+- name: release-pcf
+  plan:
+  - get: pcf-environment
+    passed: [ remove-tile ]
+    trigger: true
+  - put: pcf-environment
+    params:
+      release: pcf-environment
+
+- name: manual-cleanup-and-release
+  plan:
+  - aggregate:
+    - get: tile-generator-repo
+    - get: dynatrace-appmon-tile
+      passed: [ claim-pcf ]
+    - get: pcf-environment
+      passed: [ claim-pcf ]
+    - get: dynatrace-appmon-tile-repo
+  - task: remove-tile
+    config:
+      platform: linux
+      image: "docker:///guidowb/tile-pipeline"
+      inputs:
+      - name: tile-generator-repo
+      - name: pcf-environment
+      - name: dynatrace-appmon-tile
+      - name: dynatrace-appmon-tile-repo
+      run:
+        path: dynatrace-appmon-tile-repo/ci/scripts/run-removetile.sh
+        args: [ "tile-generator-repo", "dynatrace-appmon-tile", "pcf-environment" ]
+  - put: pcf-environment
+    params:
+      release: pcf-environment
+

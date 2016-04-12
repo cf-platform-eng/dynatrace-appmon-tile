@@ -1,0 +1,44 @@
+---
+name: dynatrace-appmon-tile
+label: Dynatrace Appmon Service Broker
+description: Dynatrace Appmon Service Broker Tile
+icon_file: resources/icon.png
+
+# Global defaults (all optional)
+# org: test-org                       # Optional
+# space: test-space                   # Optional
+org_quota: 4096                       # Optional, memory quota in mb
+apply_open_security_group: true       # Apply open security group, default: false
+allow_paid_service_plans: true        # Allow paid service plans, default: false
+
+#properties:
+
+forms:
+- name: Appmon-ServiceBroker
+  label: Appmon Service Broker
+  description: Properties for Appmon Service Broker
+
+dynamic_service_plans:
+- name: description
+  type: string
+  configurable: true
+  description: Collector description
+- name: collector_host
+  type: string
+  configurable: true
+  description: Collector Host Address
+- name: collector_port
+  type: integer
+  configurable: true
+  default: 9998
+  description: Collector Port
+
+packages:
+
+- name: dynatrace-appmon-service-broker               # Broker with minimal configuration, i.e. all default values
+  type: app-broker
+  enable_global_access_to_plans: true
+  manifest:
+    path: resources/dynatrace-service-broker.jar
+    memory: 512M                      # Override memory, default: 1G
+
