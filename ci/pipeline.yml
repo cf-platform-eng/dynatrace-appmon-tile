@@ -95,7 +95,7 @@ jobs:
         args: [ "dynatrace-appmon-sb-repo", "dynatrace-appmon-sb"]
   - put: dynatrace-appmon-sb
     params:
-      from: dynatrace-appmon-sb/dynatrace-service-broker*\.jar
+      file: dynatrace-appmon-sb/dynatrace-service-broker*.jar
 
 
 - name: build-tile
