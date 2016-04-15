@@ -41,4 +41,5 @@ packages:
   manifest:
     path: resources/dynatrace-service-broker.jar
     memory: 512M                      # Override memory, default: 1G
+    timeout: 180
 

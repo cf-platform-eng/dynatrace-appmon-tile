@@ -84,6 +84,7 @@ jobs:
   - task: build-dynatrace-appmon-sb
     config:
       platform: linux
+      # use # for adding docker image tags, not ':'
       image: "docker:///maven#3.3.9-jdk-8-onbuild"
       inputs:
       - name: dynatrace-appmon-sb-repo
@@ -95,6 +96,7 @@ jobs:
         args: [ "dynatrace-appmon-sb-repo", "dynatrace-appmon-sb"]
   - put: dynatrace-appmon-sb
     params:
+      # Dont use regex for file arguments
       file: dynatrace-appmon-sb/dynatrace-service-broker*.jar
 
 
