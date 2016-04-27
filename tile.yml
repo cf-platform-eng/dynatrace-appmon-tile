@@ -11,6 +11,11 @@ org_quota: 4096                       # Optional, memory quota in mb
 apply_open_security_group: true       # Apply open security group, default: false
 allow_paid_service_plans: true        # Allow paid service plans, default: false
 
+stemcell_criteria:
+  os: ubuntu-trusty
+  requires_cpi: false
+  version: '3146.10'
+
 #properties:
 
 forms:
