@@ -1,3 +1,5 @@
+# dynatrace-appmon-tile is no longer actively maintained by VMware.
+
 # PCF Tile for Dynatrace Appmon Monitoring
 
 This is the tile repository for generating the Dynatrace Appmon PCF tile. Tiles are the
